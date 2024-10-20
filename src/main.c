@@ -85,26 +85,6 @@ int main() {
         return 1;
     }
 
-    test_string_funcs();
-    mesh_t* obamium = parse_file_obj("assets/obama/obamium.obj");
-
-    binfo("file path: %s", managed_ptr_mem(char, file_path.data));
-    managed_ptr_free(file_path.data);
-
-    managed_ptr_reset(mesh_t, mesh, mesh_create(managed_ptr_mem(float, ptr), 4, indices, 6));
-    shader_t* shader = shader_create("assets/shaders/simple.vert", "assets/shaders/simple.frag", SHADER_MODEL);
-    texture_t* texture = texture_create("assets/base.png");
-    texture_t* onion = texture_create("assets/onion.png");
-    managed_ptr_free(ptr);
-    bfree(indices, sizeof(u32) * 6, M_UNUSED);
-    point_light_t* light = point_light_create("balling", (vec3) {0, 3, 6}, 4.0f, 4.0f, (attenuation_t) { 0.2f, 0.5f, 0.3f});
-    u32 location = shader_get_uniform_location(shader, "translation");
-    
-    mat4 onion_translation = mat4_identity();
-    onion_translation = mat4_translate(onion_translation, 0.4, -0.5f, 0);
-    onion_translation = mat4_scale(onion_translation, 5, 5, 5);
-    translation = mat4_scale(translation, 5.0, 5.0, 5.0);
-    camera = camera_create((vec3) { 0.0, 0.0, 5.0 }, (vec3) {0.0, 0.0, 0.0 }, deg_to_rad(70.0f), 1080.0f / 720.0f, 0.1f, 100.0f);
 
     print_memory_stats();
     while (!glfwWindowShouldClose(window)) {
@@ -148,34 +128,10 @@ int main() {
         
         mat4 mvp = mat4_mul(camera->projection_matrix, camera->view_matrix);
 
-        translation = mat4_rotate(translation, 0, 0, 0.01f); 
-        for (i32 i = -5; i < 5; i++) {
-            for (i32 j = -5; j < 5; j++) {
-                ////
-                mat4 translation2 = mat4_translate(onion_translation, 5.0f * (f32) i, 5.0f * (f32) j, 0);
-                shader_load_model_shader(shader, translation2, mvp, onion->id, camera->position, light);
-                shader_bind(shader);
-                shader_bind_uniforms(shader);
-
-                mesh_render(managed_ptr_mem(mesh_t, mesh)); 
-                shader_unbind();
-            }
-        }
-
-        shader_load_model_shader(shader, translation, mvp, texture->id, camera->position, light);
-        shader_bind(shader);
-        shader_bind_uniforms(shader);
-        mesh_render(obamium);
-        shader_unbind();
-        
-
         glfwSwapBuffers(window);
     }
 
     point_light_destroy(light);
-    mesh_destroy(obamium);
-    texture_destroy(onion);
-    //managed_ptr_free(ptr);
     shader_destroy(shader);
     managed_ptr_free(mesh);
     texture_destroy(texture);
